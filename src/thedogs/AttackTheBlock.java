@@ -319,12 +319,12 @@ public class AttackTheBlock implements Runnable
         if( itsCount == -1 )
         {
             while( true )
-                loadURL("http://localhost:8080/simple_v1_jsp/");
+                loadURL(itsPath);
         }
         else
         {
             while( idx-- > 0 )
-                loadURL("http://localhost:8080/simple_v1_jsp/");
+                loadURL(itsPath);
         }
     }
 

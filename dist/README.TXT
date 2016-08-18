@@ -11,13 +11,7 @@ JAR files manifest file (MANIFEST.MF).
 To run the project from the command line, go to the dist folder and
 type the following:
 
-java -jar attacktheblock.jar [options]
-
-options:
--threads:#    - # is number of threads, default is 5
--count:#      - # number of times each thread hits the server, default is 1000
--path:url     - url the inet path to the server, default is http://localhost:8080
--debug:on|off - default is off, on is verbose output, processing is slower
+java -jar "attacktheblock.jar" 
 
 To distribute this project, zip up the dist folder (including the lib folder)
 and distribute the ZIP file.
