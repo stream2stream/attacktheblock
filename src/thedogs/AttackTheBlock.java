@@ -28,6 +28,7 @@ public class AttackTheBlock implements Runnable
     static  private final    String  itsDebugCommand = "-debug:";
     static  private final    String  itsThreadsCommand = "-threads:";
     static  private final    String  itsCountCommand = "-count:";
+    static  private final    String  itsHelpCommand = "-help";
     static  private String  itsPath = "http://localhost:8080/";
     static  private int     itsNoOfThreads = 5;
     static  private boolean fDebugOn = false; //toggles debugging
@@ -101,7 +102,23 @@ public class AttackTheBlock implements Runnable
                     itsCount = Integer.parseInt(tempInstanceValue);
                 }
             }
+            idx = arg.indexOf(itsHelpCommand);
+            if(idx > -1)
+            {
+                showHelp();
+                System.exit(0);
+            }
         }
+    }
+    
+    static  public  void    showHelp()
+    {
+        System.out.println( "java -jar attacktheblock.jar [options]");
+        System.out.println( "options:\n" +
+        "-threads:#    - # is number of threads, default is 5\n" + 
+        "-count:#      - # number of times each thread hits the server, default is 1000\n" +
+        "-path:url     - url the inet path to the server, default is http://localhost:8080\n" +
+        "-debug:on|off - default is off, on is verbose output, processing is slower");    
     }
 
     public  void waitForShutdownCommand()
