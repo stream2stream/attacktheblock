@@ -124,7 +124,7 @@ public class AttackTheBlock implements Runnable
         "-threads:#    - # is number of threads, default is 5\n" + 
         "-count:#      - # number of times each thread hits the server, default is 1000\n" +
         "-path:url     - url the inet path to the server, default is http://localhost:8080\n" +
-        "-debug:on|off - default is off, on is verbose output, processing is slower");    
+        "-debug:#      - default is 0, 0-none, 1-medium, 2-verbose");    
     }
 
     public  void waitForShutdownCommand()
