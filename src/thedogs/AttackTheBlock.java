@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -232,70 +233,37 @@ public class AttackTheBlock implements Runnable
         {
             //create new URL using fDefaultURL as the base or default URL
             tempURL = new URL(specStr);
-            URLConnection conn = tempURL.openConnection();
-
-            if (itsDebugLevel > 1)
+            URLConnection urlconn = tempURL.openConnection();
+            
+            if( urlconn instanceof HttpURLConnection )
             {
-                System.out.println("protocol: " + tempURL.getProtocol());
-                System.out.println("host: " + tempURL.getHost());
-                System.out.println("port: " + tempURL.getPort());
-                System.out.println("path: " + getPath( tempURL.getPath()));
-                System.out.println("file path: " + tempURL.getFile());
-                System.out.println("filename: " + getFilename( tempURL.getFile()));
-            }
+                HttpURLConnection conn = (HttpURLConnection)urlconn;
+                if (itsDebugLevel > 1)
+                {
+                    System.out.println("protocol: " + tempURL.getProtocol());
+                    System.out.println("host: " + tempURL.getHost());
+                    System.out.println("port: " + tempURL.getPort());
+                    System.out.println("path: " + getPath( tempURL.getPath()));
+                    System.out.println("file path: " + tempURL.getFile());
+                    System.out.println("filename: " + getFilename( tempURL.getFile()));
+                }
 
-            if (itsDebugLevel > 0)
-            {
-                System.out.println("Opening input stream...");
-            }
-            //open the connection, get InputStream from which to read
-            //content data
-            tmpInputStream = conn.getInputStream();
-            BufferedReader br = new BufferedReader(new InputStreamReader(tmpInputStream));
+                if (itsDebugLevel > 0)
+                {
+                    System.out.println("Opening input stream...");
+                }
+                //open the connection, get InputStream from which to read
+                //content data
 
-            //if we get to this point without an exception being thrown,
-            //then we've connected to a valid Web server,
-            // requested a valid URL, and there's content
-            //data waiting for us on the InputStream
+                // These three lines should force a HTTP GET
+                conn.setRequestMethod("GET");
 
-            //use URL.hashCode() to generate a unique filename if no file name specified
-            URLComponents uc = getURLComponents( specStr );
+                conn.setDoOutput(false);
+                conn.setDoInput(true);
 
-            if( uc.fileName.length() < 1 )
-            {
-                uc.savedFileName = String.valueOf(tempURL.hashCode()) + ".html";
+                InputStream is = conn.getInputStream();
+                is.close();
             }
-            fileMappings.add( uc );
-
-            if( outputFileName == null )
-                outputFileName = uc.savedFileName;
-            else
-                uc.savedFileName = outputFileName;
-
-            if (itsDebugLevel > 0)
-            {
-                System.out.println(
-                        "Opening output file: " + outputFileName);
-            }
-            if( itsDebugLevel > 0 )
-            {
-                System.out.println("Copying Data...");
-            }
-            if( itsDebugLevel > 1 )
-            {
-                //open output file
-                BufferedWriter bw = new BufferedWriter( new FileWriter( outputFileName ));
-
-                String inputText = null;
-                while( (inputText = br.readLine()) != null )
-                    bw.write( inputText );
-                bw.close();
-            }
-            if (fDebugOn)
-            {
-                System.out.println("Done Downloading Content!");
-            }
-            br.close();
         } 
         catch (MalformedURLException murlEx)
         {
