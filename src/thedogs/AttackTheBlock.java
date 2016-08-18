@@ -219,51 +219,27 @@ public class AttackTheBlock implements Runnable
      * @param specStr A String containing the URL to load: i.e.
      * "http://www.rawthought.com/"
      */
-     public  void    loadURL( String specStr )
+     public  void    loadURL( String specStr, URL tempURL )
     {
-        loadURL( specStr, null );
-    }
-     
-    public void loadURL(String specStr, String outputFileName )
-    {
-        URL tempURL;//the URL to be loaded
         InputStream tmpInputStream;//stream from which to read data
 
         try
         {
             //create new URL using fDefaultURL as the base or default URL
-            tempURL = new URL(specStr);
-            URLConnection urlconn = tempURL.openConnection();
+            HttpURLConnection conn = (HttpURLConnection)tempURL.openConnection();
             
-            if( urlconn instanceof HttpURLConnection )
+            if (itsDebugLevel > 0)
             {
-                HttpURLConnection conn = (HttpURLConnection)urlconn;
-                if (itsDebugLevel > 1)
-                {
-                    System.out.println("protocol: " + tempURL.getProtocol());
-                    System.out.println("host: " + tempURL.getHost());
-                    System.out.println("port: " + tempURL.getPort());
-                    System.out.println("path: " + getPath( tempURL.getPath()));
-                    System.out.println("file path: " + tempURL.getFile());
-                    System.out.println("filename: " + getFilename( tempURL.getFile()));
-                }
-
-                if (itsDebugLevel > 0)
-                {
-                    System.out.println("Opening input stream...");
-                }
-                //open the connection, get InputStream from which to read
-                //content data
-
-                // These three lines should force a HTTP GET
-                conn.setRequestMethod("GET");
-
-                conn.setDoOutput(false);
-                conn.setDoInput(true);
-
-                InputStream is = conn.getInputStream();
-                is.close();
+                System.out.println("Opening input stream...");
             }
+            //open the connection, get InputStream from which to read
+            //content data
+
+            // These three lines should force a HTTP GET
+            conn.setRequestMethod("GET");
+
+            tmpInputStream = conn.getInputStream();
+            tmpInputStream.close();
         } 
         catch (MalformedURLException murlEx)
         {
@@ -275,24 +251,46 @@ public class AttackTheBlock implements Runnable
             if (fDebugOn)
                 Logger.getLogger(AttackTheBlock.class.getName()).log(Level.SEVERE, null, ex);
         }
+        catch( ClassCastException ex )
+        {
+            if (fDebugOn)
+                Logger.getLogger(AttackTheBlock.class.getName()).log(Level.SEVERE, null, ex);
+        }   
     } // loadURL    
 
     @Override
     public void run()
     {
-        int idx = itsCount;
-        
-        if( itsCount == -1 )
+        try
         {
-            while( true )
-                loadURL(itsPath);
-        }
-        else
+            int idx = itsCount;
+            URL tempURL = new URL(itsPath);
+            //URLConnection urlconn = tempURL.openConnection();
+            
+            if (itsDebugLevel > 1)
+            {
+                System.out.println("protocol: " + tempURL.getProtocol());
+                System.out.println("host: " + tempURL.getHost());
+                System.out.println("port: " + tempURL.getPort());
+                System.out.println("path: " + getPath( tempURL.getPath()));
+                System.out.println("file path: " + tempURL.getFile());
+                System.out.println("filename: " + getFilename( tempURL.getFile()));
+            }
+
+            if( itsCount == -1 )
+            {
+                while( true )
+                    loadURL(itsPath, tempURL );
+            }
+            else
+            {
+                while( idx-- > 0 )
+                    loadURL(itsPath, tempURL );
+            }
+        } catch (MalformedURLException ex)
         {
-            while( idx-- > 0 )
-                loadURL(itsPath);
+            Logger.getLogger(AttackTheBlock.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
 
 }
