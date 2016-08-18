@@ -6,12 +6,17 @@
 package thedogs;
 
 import corbastuff.KeyboardHandler;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,6 +38,7 @@ public class AttackTheBlock implements Runnable
     static  private int     itsNoOfThreads = 5;
     static  private boolean fDebugOn = false; //toggles debugging
     static  private int     itsCount = 1000;
+    static  private int     itsDebugLevel = 0; // 0-none, 1-medium, 2-verbose
 
     private ArrayList<URLComponents> fileMappings = new ArrayList<URLComponents>();
     protected URL  fDefaultURL = null;//used as default URL
@@ -88,9 +94,9 @@ public class AttackTheBlock implements Runnable
             if(idx > -1)
             {
                 String tempDebugValue = arg.substring(idx + itsDebugCommand.length());
-                if( tempDebugValue.equalsIgnoreCase("on") )
+                if( tempDebugValue.length() > 0 )
                 {
-                    fDebugOn = true;
+                    itsDebugLevel = Integer.parseInt(tempDebugValue);
                 }
             }
             idx = arg.indexOf(itsCountCommand);
@@ -220,15 +226,15 @@ public class AttackTheBlock implements Runnable
     public void loadURL(String specStr, String outputFileName )
     {
         URL tempURL;//the URL to be loaded
-        InputStream tempInputStream;//stream from which to read data
-        int curByte; //used for copying from input stream to a file
+        InputStream tmpInputStream;//stream from which to read data
 
         try
         {
             //create new URL using fDefaultURL as the base or default URL
             tempURL = new URL(specStr);
+            URLConnection conn = tempURL.openConnection();
 
-            if (fDebugOn)
+            if (itsDebugLevel > 1)
             {
                 System.out.println("protocol: " + tempURL.getProtocol());
                 System.out.println("host: " + tempURL.getHost());
@@ -238,76 +244,68 @@ public class AttackTheBlock implements Runnable
                 System.out.println("filename: " + getFilename( tempURL.getFile()));
             }
 
-            try
+            if (itsDebugLevel > 0)
             {
-                if (fDebugOn)
-                {
-                    System.out.println("Opening input stream...");
-                }
-                //open the connection, get InputStream from which to read
-                //content data
-                tempInputStream = tempURL.openStream();
-
-                //if we get to this point without an exception being thrown,
-                //then we've connected to a valid Web server,
-                // requested a valid URL, and there's content
-                //data waiting for us on the InputStream
-                try
-                {
-                    //use URL.hashCode() to generate a unique filename if no file name specified
-                    URLComponents uc = getURLComponents( specStr );
-
-                    if( uc.fileName.length() < 1 )
-                    {
-                        uc.savedFileName = String.valueOf(tempURL.hashCode()) + ".html";
-                    }
-                    fileMappings.add( uc );
-
-                    if( outputFileName == null )
-                        outputFileName = uc.savedFileName;
-                    else
-                        uc.savedFileName = outputFileName;
-                    
-                    if (fDebugOn)
-                    {
-                        System.out.println(
-                                "Opening output file: " + outputFileName);
-                    }
-                    //open output file
-                    OutputStream outstream = new NullOutputStream();
-
-                    if (fDebugOn)
-                    {
-                        System.out.println("Copying Data...");
-                    }
-                    try
-                    {
-                        while ((curByte = tempInputStream.read()) != -1)
-                        {
-                            //simple byte-for-byte copy...could be improved!
-                            outstream.write(curByte);
-                        }
-                        if (fDebugOn)
-                        {
-                            System.out.println("Done Downloading Content!");
-                        }
-                        //we're done writing to the local file, so close it
-                        outstream.close();
-                    } catch (IOException copyEx)
-                    {
-                        System.err.println("copyEx: " + copyEx);
-                    }
-                } catch (Exception fileOpenEx)
-                {
-                    System.err.println("fileOpenEx: " + fileOpenEx);
-                }
-            } catch (IOException retrieveEx)
-            {
-                System.err.println("retrievEx: " + retrieveEx);
+                System.out.println("Opening input stream...");
             }
-        } catch (MalformedURLException murlEx)
+            //open the connection, get InputStream from which to read
+            //content data
+            tmpInputStream = conn.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(tmpInputStream));
+
+            //if we get to this point without an exception being thrown,
+            //then we've connected to a valid Web server,
+            // requested a valid URL, and there's content
+            //data waiting for us on the InputStream
+
+            //use URL.hashCode() to generate a unique filename if no file name specified
+            URLComponents uc = getURLComponents( specStr );
+
+            if( uc.fileName.length() < 1 )
+            {
+                uc.savedFileName = String.valueOf(tempURL.hashCode()) + ".html";
+            }
+            fileMappings.add( uc );
+
+            if( outputFileName == null )
+                outputFileName = uc.savedFileName;
+            else
+                uc.savedFileName = outputFileName;
+
+            if (itsDebugLevel > 0)
+            {
+                System.out.println(
+                        "Opening output file: " + outputFileName);
+            }
+            if( itsDebugLevel > 0 )
+            {
+                System.out.println("Copying Data...");
+            }
+            if( itsDebugLevel > 1 )
+            {
+                //open output file
+                BufferedWriter bw = new BufferedWriter( new FileWriter( outputFileName ));
+
+                String inputText = null;
+                while( (inputText = br.readLine()) != null )
+                    bw.write( inputText );
+                bw.close();
+            }
+            if (fDebugOn)
+            {
+                System.out.println("Done Downloading Content!");
+            }
+            br.close();
+        } 
+        catch (MalformedURLException murlEx)
         {
-            System.err.println("new URL threw ex: " + murlEx);
+            if (fDebugOn)
+                System.err.println("new URL threw ex: " + murlEx);
+        } 
+        catch (IOException ex)
+        {
+            if (fDebugOn)
+                Logger.getLogger(AttackTheBlock.class.getName()).log(Level.SEVERE, null, ex);
         }
     } // loadURL    
 
