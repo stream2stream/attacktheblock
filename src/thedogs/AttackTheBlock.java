@@ -123,7 +123,7 @@ public class AttackTheBlock implements Runnable
         System.out.println( "java -jar attacktheblock.jar [options]");
         System.out.println( "options:\n" +
         "-threads:#    - # is number of threads, default is 5\n" + 
-        "-count:#      - # number of times each thread hits the server, default is 1000\n" +
+        "-count:#      - # number of times each thread hits the server, default is 1000, -1 is forever\n" +
         "-path:url     - url the inet path to the server, default is http://localhost:8080\n" +
         "-debug:#      - default is 0, 0-none, 1-medium, 2-verbose");    
     }
